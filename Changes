@@ -1,3 +1,9 @@
+1.0.2 (2022-10-10)
+
+    Enhancements:
+        - Documentation improvements.
+        - New "--do-nothing, -n" option
+
 1.0.1 (2022-10-05)
 
     API / Behaviour Changes:
