@@ -7,7 +7,8 @@
         - None.
 
     Enhancements:
-        - None.
+        - Add missing VERSION type
+        - Check for missing FN and N types
 
     Bug Fixes:
         - None.

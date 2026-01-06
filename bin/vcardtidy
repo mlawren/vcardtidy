@@ -72,33 +72,38 @@ sub vcardtidy {
         $data = $file->slurp( { binmode => ':raw:encoding(UTF-8)' } );
     }
 
-    $data = App::vcardtidy::run_filters( $data, @{ $opts->{filter} } );
+    my $filtered = App::vcardtidy::run_filters( $data, @{ $opts->{filter} } );
 
     my $tidy = eval {
-        my $ab    = Text::vCard::Addressbook->new( { 'source_text' => $data } );
-        my $clean = $ab->export;
+        my $ab =
+          Text::vCard::Addressbook->new( { 'source_text' => $filtered } );
+        my $i = 0;
 
-        my $clean2 = $clean =~ s/^REV:.*\015\012//mr;
-        my $data2  = $data  =~ s/^REV:.*\015\012//mr;
-        if ( not( $opts->{no_rev} )
-            and ( $clean2 eq $clean or $clean2 ne $data2 ) )
-        {
-            foreach my $vcard ( $ab->vcards ) {
-                $vcard->REV($dtstamp);
+        foreach my $vcard ( $ab->vcards ) {
+            if ( not $vcard->get('FN') ) {
+                die qq/VCARD $i missing FN type\n/;
             }
-            $ab->export;
+            if ( not $vcard->get('N') ) {
+                die qq/VCARD $i missing N type\n/;
+            }
+            if ( not length $vcard->version ) {
+                warn qq/$opts->{input}: VCARD $i missing VERSION /
+                  . qq/(setting to "3")\n/;
+                $vcard->version(3);
+            }
+            $vcard->REV($dtstamp) unless $opts->{no_rev};
+            $vcard->PRODID("vcardtidy $VERSION");
         }
-        else {
-            $clean;
-        }
+
+        $ab->export;
     };
 
     if ($@) {
-        warn "Invalid VCARD in '$opts->{input}': $@";
+        warn "$opts->{input}: $@";
         return;
     }
     elsif ( length($tidy) == 0 ) {
-        warn "Invalid VCARD in '$opts->{input}'\n";
+        warn "$opts->{input}: No tidy output!\n";
         return;
     }
 
@@ -109,8 +114,16 @@ sub vcardtidy {
         print $tidy;
     }
     else {
+        my $data2 = $data;
+        $data2 =~ s/^REV:.*\015\012//m;
+        $data2 =~ s/^PRODID:.*\015\012//m;
+
+        my $tidy2 = $tidy;
+        $tidy2 =~ s/^REV:.*\015\012//m;
+        $tidy2 =~ s/^PRODID:.*\015\012//m;
+
         $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy )
-          unless $opts->{do_nothing};
+          unless $opts->{do_nothing} or $data2 eq $tidy2;
     }
 }
 

@@ -4,6 +4,8 @@ use warnings;
 use Test2::V0;
 use Path::Tiny;
 
+our $VERSION = '1.0.3_1';
+
 my $vcardtidy = path( 't', 'vcardtidy' );
 my $dirty     = path( 't', 'dirty.vcf' );
 my $tmp       = Path::Tiny->tempfile;
@@ -17,6 +19,7 @@ system( $vcardtidy, $tmp ) == 0 or die "$vcardtidy $tmp failed: " . ( $? >> 8 );
 my $dirty_vcf = $dirty->slurp_utf8;
 my $clean_vcf = $tmp->slurp_utf8;
 my $want_vcf  = $want->slurp_utf8;
+$want_vcf =~ s/^PRODID:XXX/PRODID:vcardtidy $VERSION/m;
 
 isnt $dirty_vcf, $clean_vcf, 'not equal to original';
 isnt $clean_vcf, $want_vcf,  'not tidy yet';
