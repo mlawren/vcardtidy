@@ -52,10 +52,13 @@ my $opts = optargs(
 
 my $dtstamp = localtime->strftime('%Y-%m-%dT%H%M%SZ');
 
+my $badcount = 0;
 foreach my $f ( @{ $opts->{files} } ) {
     $opts->{input} = $f;
-    vcardtidy($opts);
+    vcardtidy($opts) || $badcount++;
 }
+
+die "vcardtidy failure count: $badcount\n" if $badcount;
 
 sub vcardtidy {
     my $opts = shift;
@@ -74,38 +77,44 @@ sub vcardtidy {
 
     my $filtered = App::vcardtidy::run_filters( $data, @{ $opts->{filter} } );
 
-    my $tidy = eval {
-        my $ab =
-          Text::vCard::Addressbook->new( { 'source_text' => $filtered } );
-        my $i = 0;
-
-        foreach my $vcard ( $ab->vcards ) {
-            if ( not $vcard->get('FN') ) {
-                die qq/VCARD $i missing FN type\n/;
-            }
-            if ( not $vcard->get('N') ) {
-                die qq/VCARD $i missing N type\n/;
-            }
-            if ( not length $vcard->version ) {
-                warn qq/$opts->{input}: VCARD $i missing VERSION /
-                  . qq/(setting to "3")\n/;
-                $vcard->version(3);
-            }
-            $vcard->REV($dtstamp) unless $opts->{no_rev};
-            $vcard->PRODID("vcardtidy $VERSION");
-        }
-
-        $ab->export;
-    };
+    my $ab =
+      eval { Text::vCard::Addressbook->new( { 'source_text' => $filtered } ); };
 
     if ($@) {
         warn "$opts->{input}: $@";
-        return;
+        return 0;
     }
-    elsif ( length($tidy) == 0 ) {
-        warn "$opts->{input}: No tidy output!\n";
-        return;
+
+    my @vcards = $ab->vcards;
+    if ( 0 == @vcards ) {
+        warn "$opts->{input}: No cards to tidy!\n";
+        return 1;    # not considered an error. TODO If '-' then print?
     }
+
+    foreach my $vcard (@vcards) {
+        my $i = 0;
+
+        if ( not $vcard->get('FN') ) {
+            warn qq/$opts->{input}: VCARD $i missing FN type\n/;
+            return 0;
+        }
+        if ( not $vcard->get('N') ) {
+            warn qq/$opts->{input}: VCARD $i missing N type\n/;
+            return 0;
+        }
+        if ( not length $vcard->version ) {
+            warn qq/$opts->{input}: VCARD $i missing VERSION /
+              . qq/(setting to "3")\n/;
+            $vcard->version(3);
+        }
+
+        $vcard->REV($dtstamp) unless $opts->{no_rev};
+        $vcard->PRODID("vcardtidy $VERSION");
+
+        $i++;
+    }
+
+    my $tidy = $ab->export;
 
     # Fix for multiple categories
     while ( $tidy =~ s/^(CATEGORIES:.*?)\\,/$1,/mg ) { }
@@ -125,6 +134,8 @@ sub vcardtidy {
         $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy )
           unless $opts->{do_nothing} or $data2 eq $tidy2;
     }
+
+    1;
 }
 
 package App::vcardtidy;

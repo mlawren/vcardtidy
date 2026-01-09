@@ -1,7 +1,7 @@
 1.0.3_1 (yyyy-mm-dd)
 
     API / Behaviour Changes:
-        - None.
+        - Non-zero exit value if any file fails to tidy
 
     New Features:
         - None.
