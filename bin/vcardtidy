@@ -98,10 +98,12 @@ sub vcardtidy {
             warn qq/$opts->{input}: VCARD $i missing FN type\n/;
             return 0;
         }
+
         if ( not $vcard->get('N') ) {
             warn qq/$opts->{input}: VCARD $i missing N type\n/;
             return 0;
         }
+
         if ( not length $vcard->version ) {
             warn qq/$opts->{input}: VCARD $i missing VERSION /
               . qq/(setting to "3")\n/;
@@ -114,7 +116,14 @@ sub vcardtidy {
         $i++;
     }
 
-    my $tidy = $ab->export;
+    # Remove duplicate fields
+    my $prev = '';
+    my $seen;
+    my $tidy = join '', map {
+        $seen = $_ eq $prev;
+        $prev = $_;
+        $seen ? () : $_ . "\x0D\x0A"
+    } split "\x0D\x0A", $ab->export;
 
     # Fix for multiple categories
     while ( $tidy =~ s/^(CATEGORIES:.*?)\\,/$1,/mg ) { }

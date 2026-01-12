@@ -9,6 +9,7 @@
     Enhancements:
         - Add missing VERSION type
         - Check for missing FN and N types
+        - Remove duplicate lines
 
     Bug Fixes:
         - None.
