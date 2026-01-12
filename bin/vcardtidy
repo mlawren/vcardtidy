@@ -36,6 +36,12 @@ my $opts = optargs(
             comment  => 'Perl filter(s) to run against $_ first',
             default  => sub { [] },
         },
+        vcard_version => {
+            isa     => '--Str',
+            alias   => 'v',
+            default => '4.0',
+            comment => 'value for vCard VERSION field'
+        },
         version => {
             isa     => '--Flag',
             alias   => 'V',
@@ -106,8 +112,8 @@ sub vcardtidy {
 
         if ( not length $vcard->version ) {
             warn qq/$opts->{input}: VCARD $i missing VERSION /
-              . qq/(setting to "3")\n/;
-            $vcard->version(3);
+              . qq/(setting to "$opts->{vcard_version}")\n/;
+            $vcard->version( $opts->{vcard_version} );
         }
 
         $vcard->REV($dtstamp) unless $opts->{no_rev};
@@ -170,19 +176,18 @@ vcardtidy - normalize the format of VCARD files
 
 =head1 SYNOPSIS
 
-  usage: vcardtidy [FILES...] [OPTIONS...]
+    usage: vcardtidy [FILES...] [OPTIONS...]
 
-    Synopsis:
-      tidy (normalize) VCARD contact files
+      Arguments:
+        FILES               (Str)  file to tidy (default is stdin)
 
-    Arguments:
-      FILES         Str   file to tidy (default is stdin)
-
-    Options:
-      --filter,  -f PERL  Perl filter(s) to run against $_ first
-      --help,    -h       print a Help message and exit
-      --no-rev,  -R       do not update REV value
-      --version, -V       print version information and exit
+      Options:
+        --do-nothing,    -n        don't modify files, only report errors
+        --filter,        -f PERL   Perl filter(s) to run against $_ first
+        --help,          -h        print a Help message and exit
+        --no-rev,        -R        do not update REV value
+        --vcard-version, -v (Str)  value for vCard VERSION field
+        --version,       -V        print version information and exit
 
 =head1 DESCRIPTION
 
@@ -213,7 +218,7 @@ while you develop your change.
 
 To add an additional or missing category for example:
 
-	$ vcardtidy \
+    $ vcardtidy \
        -f '$_ .= "\nCATEGORIES:\n" unless m/^CATEGORIES:/m' \
        -f 's/^(CATEGORIES:\S+)(\s+)$/$1,$2/m' \
        -f 's/^(CATEGORIES:.*)(\s+)$/${1}NewCat$2/m'
@@ -226,6 +231,10 @@ Print the full usage message and exit.
 
 By default B<vcardtidy> sets a new "REV" timestamp. Use this flag to
 prevent that.
+
+=item --vcard-version, -v VERSION
+
+Set the value of the vCard VERSION if none exists. Defaults to "4.0".
 
 =item --version, -V
 
