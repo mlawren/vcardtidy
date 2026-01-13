@@ -12,7 +12,7 @@
         - Remove duplicate lines
 
     Bug Fixes:
-        - None.
+        - UTF-8 Decode/Encode the STDIN/STDOUT streams
 
     Code Maintenance
         - None.

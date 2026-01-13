@@ -74,6 +74,7 @@ sub vcardtidy {
 
     if ( $opts->{input} eq '-' ) {
         local $/;
+        binmode STDIN, ':raw:encoding(UTF-8)';
         $data = <STDIN>;
     }
     else {
@@ -135,6 +136,7 @@ sub vcardtidy {
     while ( $tidy =~ s/^(CATEGORIES:.*?)\\,/$1,/mg ) { }
 
     if ( $opts->{input} eq '-' ) {
+        binmode STDOUT, ':raw:encoding(UTF-8)';
         print $tidy;
     }
     else {
