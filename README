@@ -22,7 +22,7 @@ OPTIONS
     --do-nothing, -n
         Do not write
 
-    --filter, -f PERL
+    --filter, -F PERL
         Before tidying, evaluate the "PERL" string with $_ set to the
         input text. The modified $_ value then input to
         Text::vCard::Addressbook for tidying.
@@ -41,6 +41,12 @@ OPTIONS
 
         If the result cannot be parsed by Text::vCard then no files are
         modified or output generated.
+
+    --force, -f
+        Force a tidy to occur by adding missing N and FN fields based on
+        the UID.
+
+        This can also be used to overwrite the VERSION field.
 
     --help, -h
         Print the full usage message and exit.

@@ -2,13 +2,15 @@
 
     API / Behaviour Changes:
         - Non-zero exit value if any file fails to tidy
+        - Alias for --filter changed from '-f' to '-F'
 
     New Features:
         - None.
 
     Enhancements:
-        - Add missing VERSION type
-        - Check for missing FN and N types
+        - Add missing VERSION field
+        - Check for missing FN and N types and optionally auto-generate
+          placedholders
         - Remove duplicate lines
 
     Bug Fixes:

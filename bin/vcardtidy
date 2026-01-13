@@ -24,17 +24,22 @@ my $opts = optargs(
             alias   => 'n',
             comment => q{don't modify files, only report errors},
         },
-        no_rev => {
+        force => {
             isa     => '--Flag',
-            alias   => 'R',
-            comment => 'do not update REV value'
+            alias   => 'f',
+            comment => 'insert missing fields where required',
         },
         filter => {
             isa      => '--ArrayRef',
             isa_name => 'PERL',
-            alias    => 'f',
+            alias    => 'F',
             comment  => 'Perl filter(s) to run against $_ first',
             default  => sub { [] },
+        },
+        no_rev => {
+            isa     => '--Flag',
+            alias   => 'R',
+            comment => 'do not update REV value'
         },
         vcard_version => {
             isa     => '--Str',
@@ -100,21 +105,63 @@ sub vcardtidy {
 
     foreach my $vcard (@vcards) {
         my $i = 0;
+        my $u = $vcard->get_simple_type('UID') // do {
+            my @c = ( 'a' .. 'f', 0 .. 9 );
+            my $uid;
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 8;
+            $uid .= '-';
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
+            $uid .= '-';
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
+            $uid .= '-';
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
+            $uid .= '-';
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 12;
+            $vcard->add_node( { 'node_type' => 'UID', } )->value($uid);
+            warn qq/$opts->{input}: VCARD $i missing UID (set to "$uid")\n/;
+            $uid;
+        };
+        $u =~ s/-.*//;
 
         if ( not $vcard->get('FN') ) {
-            warn qq/$opts->{input}: VCARD $i missing FN type\n/;
-            return 0;
+            if ( $opts->{force} ) {
+                $vcard->fn($u);
+                warn
+                  qq/$opts->{input}: VCARD $i missing FN field (set to "$u")\n/;
+            }
+            else {
+                warn qq/$opts->{input}: VCARD $i missing FN field!\n/;
+                return 0;
+            }
         }
 
         if ( not $vcard->get('N') ) {
-            warn qq/$opts->{input}: VCARD $i missing N type\n/;
-            return 0;
+            if ( $opts->{force} ) {
+                $vcard->add_node(
+                    {
+                        'node_type' => 'N',
+                        data        => [ { value => $u . ';;;;' } ]
+                    }
+                );
+                warn
+                  qq/$opts->{input}: VCARD $i missing N type (set to "$u")\n/;
+            }
+            else {
+                warn qq/$opts->{input}: VCARD $i missing N field!\n/;
+                return 0;
+            }
         }
 
-        if ( not length $vcard->version ) {
-            warn qq/$opts->{input}: VCARD $i missing VERSION /
-              . qq/(setting to "$opts->{vcard_version}")\n/;
+        my $v = $vcard->version;
+        if ( not length $v ) {
             $vcard->version( $opts->{vcard_version} );
+            warn qq/$opts->{input}: VCARD $i missing VERSION /
+              . qq/(set to "$opts->{vcard_version}")\n/;
+        }
+        elsif ( $v ne $opts->{vcard_version} ) {
+            $vcard->version( $opts->{vcard_version} );
+            warn qq/$opts->{input}: forcing VCARD $i VERSION /
+              . qq/to $opts->{vcard_version}\n/;
         }
 
         $vcard->REV($dtstamp) unless $opts->{no_rev};
@@ -149,7 +196,8 @@ sub vcardtidy {
         $tidy2 =~ s/^PRODID:.*\015\012//m;
 
         $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy )
-          unless $opts->{do_nothing} or $data2 eq $tidy2;
+          unless $opts->{do_nothing}
+          or ( $data2 eq $tidy2 and not $opts->{force} );
     }
 
     1;
@@ -200,7 +248,7 @@ have secure backups.
 
 Do not write
 
-=item --filter, -f PERL
+=item --filter, -F PERL
 
 Before tidying, evaluate the C<PERL> string with C<$_> set to the input
 text. The modified C<$_> value then input to
@@ -220,6 +268,13 @@ To add an additional or missing category for example:
 
 If the result cannot be parsed by L<Text::vCard> then no files are
 modified or output generated.
+
+=item --force, -f
+
+Force a tidy to occur by adding missing N and FN fields based on the
+UID.
+
+This can also be used to overwrite the VERSION field.
 
 =item --help, -h
 
