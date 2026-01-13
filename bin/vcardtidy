@@ -176,18 +176,7 @@ vcardtidy - normalize the format of VCARD files
 
 =head1 SYNOPSIS
 
-    usage: vcardtidy [FILES...] [OPTIONS...]
-
-      Arguments:
-        FILES               (Str)  file to tidy (default is stdin)
-
-      Options:
-        --do-nothing,    -n        don't modify files, only report errors
-        --filter,        -f PERL   Perl filter(s) to run against $_ first
-        --help,          -h        print a Help message and exit
-        --no-rev,        -R        do not update REV value
-        --vcard-version, -v (Str)  value for vCard VERSION field
-        --version,       -V        print version information and exit
+    vcardtidy [FILES...] [OPTIONS...]
 
 =head1 DESCRIPTION
 
@@ -197,13 +186,17 @@ normalize field order and capitalization.
 By default B<vcardtidy> acts like a filter, reading from C<stdin> and
 writing to C<stdout>.
 
-Any C<FILES...> provided as arguments are tidied up in place B<without
-backup>! Users are encouraged to use a revision control system (e.g.
-Git) or have secure backups.
+Any C<FILES...> specified are tidied up in place B<without backup>!
+Users are encouraged to use a revision control system (e.g. Git) or
+have secure backups.
 
 =head1 OPTIONS
 
 =over
+
+=item --do-nothing, -n
+
+Do not write
 
 =item --filter, -f PERL
 
@@ -223,6 +216,9 @@ To add an additional or missing category for example:
        -f 's/^(CATEGORIES:\S+)(\s+)$/$1,$2/m' \
        -f 's/^(CATEGORIES:.*)(\s+)$/${1}NewCat$2/m'
 
+If the result cannot be parsed by L<Text::vCard> then no files are
+modified or output generated.
+
 =item --help, -h
 
 Print the full usage message and exit.
@@ -234,7 +230,7 @@ prevent that.
 
 =item --vcard-version, -v VERSION
 
-Set the value of the vCard VERSION if none exists. Defaults to "4.0".
+The desired vCard VERSION when none exists. Defaults to "4.0".
 
 =item --version, -V
 
@@ -250,7 +246,7 @@ This tool is managed via github:
 
 =head1 SEE ALSO
 
-L<githook-perltidy>(1), L<Text::vCard::Addressbook>
+L<Text::vCard::Addressbook>, L<githook-perltidy>(1)
 
 =head1 AUTHOR
 
@@ -258,7 +254,7 @@ Mark Lawrence E<lt>nomad@null.netE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2022 Mark Lawrence <nomad@null.net>
+Copyright 2022-2026 Mark Lawrence <nomad@null.net>
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
