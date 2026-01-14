@@ -3,6 +3,7 @@
     API / Behaviour Changes:
         - Non-zero exit value if any file fails to tidy
         - Alias for --filter changed from '-f' to '-F'
+        - Rename --do-nothing to just --nothing
 
     New Features:
         - None.

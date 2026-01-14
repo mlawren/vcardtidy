@@ -19,9 +19,6 @@ DESCRIPTION
     have secure backups.
 
 OPTIONS
-    --do-nothing, -n
-        Do not write
-
     --filter, -F PERL
         Before tidying, evaluate the "PERL" string with $_ set to the
         input text. The modified $_ value then input to
@@ -54,6 +51,9 @@ OPTIONS
     --no-rev, -R
         By default vcardtidy sets a new "REV" timestamp. Use this flag
         to prevent that.
+
+    --nothing, -n
+        Do not write
 
     --vcard-version, -v VERSION
         The desired vCard VERSION when none exists. Defaults to "4.0".

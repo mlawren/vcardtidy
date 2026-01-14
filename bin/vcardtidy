@@ -19,7 +19,7 @@ my $opts = optargs(
             greedy  => 1,
             comment => 'file to tidy (default is stdin)',
         },
-        do_nothing => {
+        nothing => {
             isa     => '--Flag',
             alias   => 'n',
             comment => q{don't modify files, only report errors},
@@ -196,7 +196,7 @@ sub vcardtidy {
         $tidy2 =~ s/^PRODID:.*\015\012//m;
 
         $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy )
-          unless $opts->{do_nothing}
+          unless $opts->{nothing}
           or ( $data2 eq $tidy2 and not $opts->{force} );
     }
 
@@ -244,10 +244,6 @@ have secure backups.
 
 =over
 
-=item --do-nothing, -n
-
-Do not write
-
 =item --filter, -F PERL
 
 Before tidying, evaluate the C<PERL> string with C<$_> set to the input
@@ -284,6 +280,10 @@ Print the full usage message and exit.
 
 By default B<vcardtidy> sets a new "REV" timestamp. Use this flag to
 prevent that.
+
+=item --nothing, -n
+
+Do not write
 
 =item --vcard-version, -v VERSION
 
