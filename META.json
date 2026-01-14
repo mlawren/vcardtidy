@@ -4,7 +4,7 @@
       "Mark Lawrence <nomad@null.net>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "ExtUtils::MakeMaker version 7.64, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "ExtUtils::MakeMaker version 7.70, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "gpl_3"
    ],
@@ -44,7 +44,7 @@
          }
       }
    },
-   "release_status" : "stable",
+   "release_status" : "testing",
    "resources" : {
       "bugtracker" : {},
       "repository" : {
@@ -52,6 +52,6 @@
          "url" : "ssh://git@github.com/mlawren/vcardtidy.git"
       }
    },
-   "version" : "v1.0.2",
-   "x_serialization_backend" : "JSON::PP version 4.02"
+   "version" : "v1.0.4",
+   "x_serialization_backend" : "JSON::PP version 4.16"
 }

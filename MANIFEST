@@ -11,6 +11,7 @@ MANIFEST			This list of files
 README
 t/clean.vcf
 t/dirty.vcf
+t/invalid.vcf
 t/vcardtidy
 t/vcardtidy.t
 META.yml                                 Module YAML meta-data (added by MakeMaker)

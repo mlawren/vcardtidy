@@ -6,7 +6,7 @@ use Path::Tiny;
 use Text::vCard::Addressbook;
 use Time::Piece;
 
-our $VERSION = '1.0.2';
+our $VERSION = 'v1.0.4';
 
 my $opts = optargs(
     comment => 'tidy (normalize) VCARD contact files',
@@ -19,22 +19,33 @@ my $opts = optargs(
             greedy  => 1,
             comment => 'file to tidy (default is stdin)',
         },
-        do_nothing => {
+        nothing => {
             isa     => '--Flag',
             alias   => 'n',
             comment => q{don't modify files, only report errors},
+        },
+        force => {
+            isa     => '--Flag',
+            alias   => 'f',
+            comment => 'insert missing fields where required',
+        },
+        filter => {
+            isa      => '--ArrayRef',
+            isa_name => 'PERL',
+            alias    => 'F',
+            comment  => 'Perl filter(s) to run against $_ first',
+            default  => sub { [] },
         },
         no_rev => {
             isa     => '--Flag',
             alias   => 'R',
             comment => 'do not update REV value'
         },
-        filter => {
-            isa      => '--ArrayRef',
-            isa_name => 'PERL',
-            alias    => 'f',
-            comment  => 'Perl filter(s) to run against $_ first',
-            default  => sub { [] },
+        vcard_version => {
+            isa     => '--Str',
+            alias   => 'v',
+            default => '4.0',
+            comment => 'value for vCard VERSION field'
         },
         version => {
             isa     => '--Flag',
@@ -52,10 +63,13 @@ my $opts = optargs(
 
 my $dtstamp = localtime->strftime('%Y-%m-%dT%H%M%SZ');
 
+my $badcount = 0;
 foreach my $f ( @{ $opts->{files} } ) {
     $opts->{input} = $f;
-    vcardtidy($opts);
+    vcardtidy($opts) || $badcount++;
 }
+
+die "vcardtidy failure count: $badcount\n" if $badcount;
 
 sub vcardtidy {
     my $opts = shift;
@@ -65,6 +79,7 @@ sub vcardtidy {
 
     if ( $opts->{input} eq '-' ) {
         local $/;
+        binmode STDIN, ':raw:encoding(UTF-8)';
         $data = <STDIN>;
     }
     else {
@@ -72,46 +87,120 @@ sub vcardtidy {
         $data = $file->slurp( { binmode => ':raw:encoding(UTF-8)' } );
     }
 
-    $data = App::vcardtidy::run_filters( $data, @{ $opts->{filter} } );
+    my $filtered = App::vcardtidy::run_filters( $data, @{ $opts->{filter} } );
 
-    my $tidy = eval {
-        my $ab    = Text::vCard::Addressbook->new( { 'source_text' => $data } );
-        my $clean = $ab->export;
-
-        my $clean2 = $clean =~ s/^REV:.*\015\012//mr;
-        my $data2  = $data  =~ s/^REV:.*\015\012//mr;
-        if ( not( $opts->{no_rev} )
-            and ( $clean2 eq $clean or $clean2 ne $data2 ) )
-        {
-            foreach my $vcard ( $ab->vcards ) {
-                $vcard->REV($dtstamp);
-            }
-            $ab->export;
-        }
-        else {
-            $clean;
-        }
-    };
+    my $ab =
+      eval { Text::vCard::Addressbook->new( { 'source_text' => $filtered } ); };
 
     if ($@) {
-        warn "Invalid VCARD in '$opts->{input}': $@";
-        return;
+        warn "$opts->{input}: $@";
+        return 0;
     }
-    elsif ( length($tidy) == 0 ) {
-        warn "Invalid VCARD in '$opts->{input}'\n";
-        return;
+
+    my @vcards = $ab->vcards;
+    if ( 0 == @vcards ) {
+        warn "$opts->{input}: No cards to tidy!\n";
+        return 1;    # not considered an error. TODO If '-' then print?
     }
+
+    foreach my $vcard (@vcards) {
+        my $i = 0;
+        my $u = $vcard->get_simple_type('UID') // do {
+            my @c = ( 'a' .. 'f', 0 .. 9 );
+            my $uid;
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 8;
+            $uid .= '-';
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
+            $uid .= '-';
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
+            $uid .= '-';
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
+            $uid .= '-';
+            $uid .= $c[ rand( scalar @c ) ] for 1 .. 12;
+            $vcard->add_node( { 'node_type' => 'UID', } )->value($uid);
+            warn qq/$opts->{input}: VCARD $i missing UID (set to "$uid")\n/;
+            $uid;
+        };
+        $u =~ s/-.*//;
+
+        if ( not $vcard->get('FN') ) {
+            if ( $opts->{force} ) {
+                $vcard->fn($u);
+                warn
+                  qq/$opts->{input}: VCARD $i missing FN field (set to "$u")\n/;
+            }
+            else {
+                warn qq/$opts->{input}: VCARD $i missing FN field!\n/;
+                return 0;
+            }
+        }
+
+        if ( not $vcard->get('N') ) {
+            if ( $opts->{force} ) {
+                $vcard->add_node(
+                    {
+                        'node_type' => 'N',
+                        data        => [ { value => $u . ';;;;' } ]
+                    }
+                );
+                warn
+                  qq/$opts->{input}: VCARD $i missing N type (set to "$u")\n/;
+            }
+            else {
+                warn qq/$opts->{input}: VCARD $i missing N field!\n/;
+                return 0;
+            }
+        }
+
+        my $v = $vcard->version;
+        if ( not length $v ) {
+            $vcard->version( $opts->{vcard_version} );
+            warn qq/$opts->{input}: VCARD $i missing VERSION /
+              . qq/(set to "$opts->{vcard_version}")\n/;
+        }
+        elsif ( $v ne $opts->{vcard_version} ) {
+            $vcard->version( $opts->{vcard_version} );
+            warn qq/$opts->{input}: forcing VCARD $i VERSION /
+              . qq/to $opts->{vcard_version}\n/;
+        }
+
+        $vcard->REV($dtstamp) unless $opts->{no_rev};
+        $vcard->PRODID("vcardtidy $VERSION");
+
+        $i++;
+    }
+
+    # Remove duplicate fields
+    my $prev = '';
+    my $seen;
+    my $tidy = join '', map {
+        $seen = $_ eq $prev;
+        $prev = $_;
+        $seen ? () : $_ . "\x0D\x0A"
+    } split "\x0D\x0A", $ab->export;
 
     # Fix for multiple categories
     while ( $tidy =~ s/^(CATEGORIES:.*?)\\,/$1,/mg ) { }
 
     if ( $opts->{input} eq '-' ) {
+        binmode STDOUT, ':raw:encoding(UTF-8)';
         print $tidy;
     }
     else {
+        my $data2 = $data;
+        $data2 =~ s/^REV:.*\015\012//m;
+        $data2 =~ s/^PRODID:.*\015\012//m;
+
+        my $tidy2 = $tidy;
+        $tidy2 =~ s/^REV:.*\015\012//m;
+        $tidy2 =~ s/^PRODID:.*\015\012//m;
+
         $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy )
-          unless $opts->{do_nothing};
+          unless $opts->{nothing}
+          or ( $data2 eq $tidy2 and not $opts->{force} );
     }
+
+    1;
 }
 
 package App::vcardtidy;
@@ -133,23 +222,11 @@ vcardtidy - normalize the format of VCARD files
 
 =head1 VERSION
 
-1.0.2 (2022-10-10)
+v1.0.4 (2026-01-14)
 
 =head1 SYNOPSIS
 
-  usage: vcardtidy [FILES...] [OPTIONS...]
-
-    Synopsis:
-      tidy (normalize) VCARD contact files
-
-    Arguments:
-      FILES         Str   file to tidy (default is stdin)
-
-    Options:
-      --filter,  -f PERL  Perl filter(s) to run against $_ first
-      --help,    -h       print a Help message and exit
-      --no-rev,  -R       do not update REV value
-      --version, -V       print version information and exit
+    vcardtidy [FILES...] [OPTIONS...]
 
 =head1 DESCRIPTION
 
@@ -159,15 +236,15 @@ normalize field order and capitalization.
 By default B<vcardtidy> acts like a filter, reading from C<stdin> and
 writing to C<stdout>.
 
-Any C<FILES...> provided as arguments are tidied up in place B<without
-backup>! Users are encouraged to use a revision control system (e.g.
-Git) or have secure backups.
+Any C<FILES...> specified are tidied up in place B<without backup>!
+Users are encouraged to use a revision control system (e.g. Git) or
+have secure backups.
 
 =head1 OPTIONS
 
 =over
 
-=item --filter, -f PERL
+=item --filter, -F PERL
 
 Before tidying, evaluate the C<PERL> string with C<$_> set to the input
 text. The modified C<$_> value then input to
@@ -180,10 +257,20 @@ while you develop your change.
 
 To add an additional or missing category for example:
 
-	$ vcardtidy \
+    $ vcardtidy \
        -f '$_ .= "\nCATEGORIES:\n" unless m/^CATEGORIES:/m' \
        -f 's/^(CATEGORIES:\S+)(\s+)$/$1,$2/m' \
        -f 's/^(CATEGORIES:.*)(\s+)$/${1}NewCat$2/m'
+
+If the result cannot be parsed by L<Text::vCard> then no files are
+modified or output generated.
+
+=item --force, -f
+
+Force a tidy to occur by adding missing N and FN fields based on the
+UID.
+
+This can also be used to overwrite the VERSION field.
 
 =item --help, -h
 
@@ -193,6 +280,14 @@ Print the full usage message and exit.
 
 By default B<vcardtidy> sets a new "REV" timestamp. Use this flag to
 prevent that.
+
+=item --nothing, -n
+
+Do not write
+
+=item --vcard-version, -v VERSION
+
+The desired vCard VERSION when none exists. Defaults to "4.0".
 
 =item --version, -V
 
@@ -208,7 +303,7 @@ This tool is managed via github:
 
 =head1 SEE ALSO
 
-L<githook-perltidy>(1), L<Text::vCard::Addressbook>
+L<Text::vCard::Addressbook>, L<githook-perltidy>(1)
 
 =head1 AUTHOR
 
@@ -216,7 +311,7 @@ Mark Lawrence E<lt>nomad@null.netE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2022 Mark Lawrence <nomad@null.net>
+Copyright 2022-2026 Mark Lawrence <nomad@null.net>
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the

@@ -1,3 +1,22 @@
+v1.0.4 (2026-01-14) TRIAL RELEASE
+
+    API / Behaviour Changes:
+        - Non-zero exit value if any file fails to tidy
+        - Alias for --filter changed from '-f' to '-F'
+        - Rename --do-nothing to just --nothing
+
+    Enhancements:
+        - Add missing VERSION field
+        - Check for missing FN and N types and optionally auto-generate
+          placedholders
+        - Remove duplicate lines
+
+    Bug Fixes:
+        - UTF-8 Decode/Encode the STDIN/STDOUT streams
+
+    Packaging:
+        - Migration to full vX.Y.Z versioning.
+
 1.0.2 (2022-10-10)
 
     Enhancements:
