@@ -156,7 +156,7 @@ sub vcardtidy {
             warn qq/$opts->{input}: VCARD $i missing VERSION /
               . qq/(set to "$opts->{vcard_version}")\n/;
         }
-        elsif ( $v ne $opts->{vcard_version} ) {
+        elsif ( $v ne $opts->{vcard_version} and $opts->{force} ) {
             $vcard->version( $opts->{vcard_version} );
             warn qq/$opts->{input}: forcing VCARD $i VERSION /
               . qq/to $opts->{vcard_version}\n/;

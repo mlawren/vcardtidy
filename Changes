@@ -4,7 +4,7 @@ v0.0.0 (yyyy-mm-dd)
         - None.
 
     Bug Fixes:
-        - None.
+        - Only overwrite VERSION when --force is used.
 
     New Features:
         - None.

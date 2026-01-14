@@ -1,4 +1,5 @@
 BEGIN:VCARD
+VERSION:3.0
 FN:Test Contact
 N:Contact;Test;;;
 TEL;TYPE=VOICE:+11111111111
