@@ -1,12 +1,9 @@
-1.0.3_1 (yyyy-mm-dd)
+v1.0.4 (2026-01-14) TRIAL RELEASE
 
     API / Behaviour Changes:
         - Non-zero exit value if any file fails to tidy
         - Alias for --filter changed from '-f' to '-F'
         - Rename --do-nothing to just --nothing
-
-    New Features:
-        - None.
 
     Enhancements:
         - Add missing VERSION field
@@ -17,14 +14,8 @@
     Bug Fixes:
         - UTF-8 Decode/Encode the STDIN/STDOUT streams
 
-    Code Maintenance
-        - None.
-
-    Dependencies:
-        - None.
-
     Packaging:
-        - None.
+        - Migration to full vX.Y.Z versioning.
 
 1.0.2 (2022-10-10)
 

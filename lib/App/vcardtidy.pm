@@ -2,7 +2,7 @@ package App::vcardtidy;
 use strict;
 use warnings;
 
-our $VERSION = '1.0.3_1';
+our $VERSION = 'v1.0.4';
 
 1;
 
