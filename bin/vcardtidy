@@ -106,17 +106,15 @@ sub vcardtidy {
     foreach my $vcard (@vcards) {
         my $i = 0;
         my $u = $vcard->get_simple_type('UID') // do {
-            my @c = ( 'a' .. 'f', 0 .. 9 );
-            my $uid;
-            $uid .= $c[ rand( scalar @c ) ] for 1 .. 8;
-            $uid .= '-';
-            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
-            $uid .= '-';
-            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
-            $uid .= '-';
-            $uid .= $c[ rand( scalar @c ) ] for 1 .. 4;
-            $uid .= '-';
-            $uid .= $c[ rand( scalar @c ) ] for 1 .. 12;
+            use feature 'state';
+            state @c     = ( 'a' .. 'f', 0 .. 9 );
+            state $len_c = scalar @c;
+            my $uid = join '-', map {
+                join '',
+                  map { $c[ rand($len_c) ] }
+                  @$_
+            } [ 1 .. 8 ], [ 1 .. 4 ], [ 1 .. 4 ], [ 1 .. 4 ], [ 1 .. 12 ];
+
             $vcard->add_node( { 'node_type' => 'UID', } )->value($uid);
             warn qq/$opts->{input}: VCARD $i missing UID (set to "$uid")\n/;
             $uid;
