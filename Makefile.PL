@@ -31,6 +31,7 @@ WriteMakefile(
                 web  => 'https//github.com/mlawren/vcardtidy',
             }
         },
+        release_status => 'testing',
     },
 );
 
