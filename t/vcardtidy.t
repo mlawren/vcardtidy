@@ -4,7 +4,7 @@ use warnings;
 use Test2::V0;
 use Path::Tiny;
 
-our $VERSION = 'v1.0.4';
+our $VERSION = 'v1.0.5';
 
 my $vcardtidy = path( 't', 'vcardtidy' );
 my $dirty     = path( 't', 'dirty.vcf' );
