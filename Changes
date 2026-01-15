@@ -1,19 +1,11 @@
-v0.0.0 (yyyy-mm-dd)
-
-    API / Behaviour Changes:
-        - None.
+v1.0.5 (2026-01-15) TRIAL RELEASE
 
     Bug Fixes:
         - Only overwrite VERSION when --force is used.
 
-    New Features:
-        - None.
-
-    Improvements:
-        - None.
-
     Packaging/Dependencies:
-        - None.
+        - Releasing today mostly because PAUSE seems to have hicupped
+          yesterday and not indexed v1.0.4.
 
 v1.0.4 (2026-01-14) TRIAL RELEASE
 
