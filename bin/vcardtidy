@@ -87,7 +87,8 @@ sub vcardtidy {
         $data = $file->slurp( { binmode => ':raw:encoding(UTF-8)' } );
     }
 
-    my $filtered = App::vcardtidy::run_filters( $data, @{ $opts->{filter} } );
+    my $filtered = $data;
+    App::vcardtidy::run_filters( $filtered, @{ $opts->{filter} } );
 
     my $ab =
       eval { Text::vCard::Addressbook->new( { 'source_text' => $filtered } ); };
