@@ -6,6 +6,7 @@ on configure => sub {
 };
 
 on runtime => sub {
+    requires 'perl'                     => 'v5.28.0';
     requires 'OptArgs2'                 => '2.0.0';
     requires 'Path::Tiny'               => 0;
     requires 'Text::vCard::Addressbook' => 0;
