@@ -11,11 +11,12 @@ v0.0.0 (yyyy-mm-dd)
         - None.
 
     Improvements:
-        - None.
+        - Try to call test script (t/vcardtidy) correctly on Windows.
 
     Packaging/Dependencies:
         - Minimum Perl version of v5.28 required for state variables in
           list context.
+        - Try to call test script (t/vcardtidy) correctly on Windows.
 
 v1.0.5 (2026-01-15) TRIAL RELEASE
 

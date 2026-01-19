@@ -14,7 +14,8 @@ my $want      = path( 't', 'clean.vcf' );
 $dirty->copy($tmp);
 
 diag "$vcardtidy $tmp";
-system( $vcardtidy, $tmp ) == 0 or die "$vcardtidy $tmp failed: " . ( $? >> 8 );
+system( $^X, $vcardtidy, $tmp ) == 0
+  or die "$vcardtidy $tmp failed: " . ( $? >> 8 );
 
 my $dirty_vcf = $dirty->slurp_utf8;
 my $clean_vcf = $tmp->slurp_utf8;
