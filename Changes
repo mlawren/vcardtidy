@@ -10,7 +10,7 @@ v0.0.0 (yyyy-mm-dd)
         - None.
 
     Improvements:
-        - None.
+        - Put the options in the right order.
 
     Packaging/Dependencies:
         - Update copyright email and year.

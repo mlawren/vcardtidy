@@ -22,20 +22,6 @@ OPTIONS
     --debug, -d
         Output debugging statements to STDERR.
 
-    --regex, -r REGEX
-        Before tidying, evaluate "REGEX" replacement expression against
-        the input. Can be used multiple times. To add a NOTE and an
-        additional CATEGORY in one go for example:
-
-            $ vcardtidy untidy.vcf \
-               -r 's/^END:VCARD/NOTE:My note\r\nEND:VCARD/m'
-               -r 's/^(CATEGORIES:.*)(\s+)$/\1,NewCategory\2/m'
-
-        Tools like sed(1), awk(1) and of course perl(1) are obviously
-        natively designed to modify text, in a better way. But "--regex"
-        ensures that you still have a valid VCARD afterwards, allowing
-        you to easily iterate while you develop your change.
-
     --force, -f
         Force a tidy to occur when the N or FN fields are missing, by
         creating them based on the card's UID.
@@ -52,6 +38,20 @@ OPTIONS
     --nothing, -n
         Do not write tidied output to files. In filter mode outputs the
         original VCARD.
+
+    --regex, -r REGEX
+        Before tidying, evaluate a Perl "s/old/new/" replacement
+        expression against the input. Can be used multiple times. To add
+        a NOTE and an additional CATEGORY in one go for example:
+
+            $ vcardtidy untidy.vcf \
+               -r 's/^END:VCARD/NOTE:My note\r\nEND:VCARD/m'
+               -r 's/^(CATEGORIES:.*)(\s+)$/\1,NewCategory\2/m'
+
+        Tools like sed(1), awk(1) and of course perl(1) are obviously
+        natively designed to modify text, in a better way. But "--regex"
+        ensures that you still have a valid VCARD afterwards, allowing
+        you to easily iterate while you develop your change.
 
     --vcard-version, -v VERSION
         The value of VERSION to update (with "--force") or add (when

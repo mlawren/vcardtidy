@@ -24,13 +24,6 @@ my $opts = optargs(
             alias   => 'd',
             comment => 'output debugging information to STDERR',
         },
-        regex => {
-            isa      => '--ArrayRef',
-            isa_name => 'REGEX',
-            alias    => 'r',
-            comment  => 'Regular expression to run against $_ first',
-            default  => sub { [] },
-        },
         force => {
             isa     => '--Flag',
             alias   => 'f',
@@ -45,6 +38,13 @@ my $opts = optargs(
             isa     => '--Flag',
             alias   => 'n',
             comment => q{don't modify files, only report errors},
+        },
+        regex => {
+            isa      => '--ArrayRef',
+            isa_name => 's/OLD/NEW/',
+            alias    => 'r',
+            comment  => 'Replacement expression to run first',
+            default  => sub { [] },
         },
         vcard_version => {
             isa     => '--Str',
@@ -269,21 +269,6 @@ secure backups.
 
 Output debugging statements to STDERR.
 
-=item --regex, -r REGEX
-
-Before tidying, evaluate C<REGEX> replacement expression against the
-input.  Can be used multiple times. To add a NOTE and an additional
-CATEGORY in one go for example:
-
-    $ vcardtidy untidy.vcf \
-       -r 's/^END:VCARD/NOTE:My note\r\nEND:VCARD/m'
-       -r 's/^(CATEGORIES:.*)(\s+)$/\1,NewCategory\2/m'
-
-Tools like sed(1), awk(1) and of course perl(1) are obviously natively
-designed to modify text, in a better way. But C<--regex> ensures that
-you still have a valid VCARD afterwards, allowing you to easily iterate
-while you develop your change.
-
 =item --force, -f
 
 Force a tidy to occur when the N or FN fields are missing, by creating
@@ -304,6 +289,21 @@ Prevent B<vcardtidy> from updating the "REV" timestamp.
 
 Do not write tidied output to files. In filter mode outputs the
 original VCARD.
+
+=item --regex, -r REGEX
+
+Before tidying, evaluate a Perl C<s/old/new/> replacement expression
+against the input.  Can be used multiple times. To add a NOTE and an
+additional CATEGORY in one go for example:
+
+    $ vcardtidy untidy.vcf \
+       -r 's/^END:VCARD/NOTE:My note\r\nEND:VCARD/m'
+       -r 's/^(CATEGORIES:.*)(\s+)$/\1,NewCategory\2/m'
+
+Tools like sed(1), awk(1) and of course perl(1) are obviously natively
+designed to modify text, in a better way. But C<--regex> ensures that
+you still have a valid VCARD afterwards, allowing you to easily iterate
+while you develop your change.
 
 =item --vcard-version, -v VERSION
 
