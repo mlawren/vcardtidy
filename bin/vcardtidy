@@ -19,16 +19,6 @@ my $opts = optargs(
             greedy  => 1,
             comment => 'file to tidy (default is stdin)',
         },
-        nothing => {
-            isa     => '--Flag',
-            alias   => 'n',
-            comment => q{don't modify files, only report errors},
-        },
-        force => {
-            isa     => '--Flag',
-            alias   => 'f',
-            comment => 'insert missing fields where required',
-        },
         filter => {
             isa      => '--ArrayRef',
             isa_name => 'PERL',
@@ -36,10 +26,20 @@ my $opts = optargs(
             comment  => 'Perl filter(s) to run against $_ first',
             default  => sub { [] },
         },
+        force => {
+            isa     => '--Flag',
+            alias   => 'f',
+            comment => 'insert missing fields where required',
+        },
         no_rev => {
             isa     => '--Flag',
             alias   => 'R',
             comment => 'do not update REV value'
+        },
+        nothing => {
+            isa     => '--Flag',
+            alias   => 'n',
+            comment => q{don't modify files, only report errors},
         },
         vcard_version => {
             isa     => '--Str',
