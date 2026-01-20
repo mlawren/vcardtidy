@@ -1,23 +1,25 @@
 v0.0.0 (yyyy-mm-dd)
 
     API / Behaviour Changes:
-        - None.
+        - Rename --filter option to --regex.
 
     Bug Fixes:
         - Ensure write/no-write decision is against *original* format,
           not the filtered format.
 
     New Features:
-        - None.
+        - Can now use a --debug flag to output unified diff statements
+          to STDERR during processing.
 
     Improvements:
         - Try to call test script (t/vcardtidy) correctly on Windows.
         - Documentation.
+        - Try to call test script (t/vcardtidy) correctly on Windows.
 
     Packaging/Dependencies:
         - Minimum Perl version of v5.28 required for state variables in
           list context.
-        - Try to call test script (t/vcardtidy) correctly on Windows.
+        - New dependency on Text::Diff.
 
 v1.0.5 (2026-01-15) TRIAL RELEASE
 

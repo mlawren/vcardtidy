@@ -19,23 +19,22 @@ DESCRIPTION
     secure backups.
 
 OPTIONS
-    --filter, -F PERL
-        Before tidying, evaluate the "PERL" string with $_ set to the
-        input text. The modified $_ value then input to
-        Text::vCard::Addressbook for tidying.
+    --debug, -d
+        Output debugging statements to STDERR.
 
-        To add an additional category for example:
+    --regex, -r REGEX
+        Before tidying, evaluate "REGEX" replacement expression against
+        the input. Can be used multiple times. To add a NOTE and an
+        additional CATEGORY in one go for example:
 
             $ vcardtidy untidy.vcf \
-               -F 's/^END:VCARD/CATEGORIES:\nEND:VCARD/m
-                     unless m/^CATEGORIES:/m' \
-               -F 's/^(CATEGORIES:\S+)(\s+)$/\1,\2/m' \
-               -F 's/^(CATEGORIES:.*)(\s+)$/\1NewCat\2/m'
+               -r 's/^END:VCARD/NOTE:My note\r\nEND:VCARD/m'
+               -r 's/^(CATEGORIES:.*)(\s+)$/\1,NewCategory\2/m'
 
         Tools like sed(1), awk(1) and of course perl(1) are obviously
-        natively designed to modify text, in a better way. But
-        "--filter" ensures that you still have a valid VCARD afterwards,
-        allowing you to easily iterate while you develop your change.
+        natively designed to modify text, in a better way. But "--regex"
+        ensures that you still have a valid VCARD afterwards, allowing
+        you to easily iterate while you develop your change.
 
     --force, -f
         Force a tidy to occur when the N or FN fields are missing, by

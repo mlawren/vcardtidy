@@ -19,11 +19,16 @@ my $opts = optargs(
             greedy  => 1,
             comment => 'file to tidy (default is stdin)',
         },
-        filter => {
+        debug => {
+            isa     => '--Flag',
+            alias   => 'd',
+            comment => 'output debugging information to STDERR',
+        },
+        regex => {
             isa      => '--ArrayRef',
-            isa_name => 'PERL',
-            alias    => 'F',
-            comment  => 'Perl filter(s) to run against $_ first',
+            isa_name => 'REGEX',
+            alias    => 'r',
+            comment  => 'Regular expression to run against $_ first',
             default  => sub { [] },
         },
         force => {
@@ -88,7 +93,23 @@ sub vcardtidy {
     }
 
     my $filtered = $data;
-    App::vcardtidy::run_filters( $filtered, @{ $opts->{filter} } );
+    foreach my $user_re ( @{ $opts->{regex} } ) {
+        use experimental 're_strict';
+        use re 'strict';
+
+        print STDERR "Regex: $user_re\n" if $opts->{debug};
+        my $old = $filtered;
+        eval {
+            local $SIG{ALRM} = sub { die "Timeout\n" };
+            alarm 1;
+            eval "\$filtered =~ $user_re";
+            die $@ if $@;
+            alarm 0;
+        };
+
+        die "Regex failed: $user_re:" . $@ if $@;
+        _diff( $old, $filtered )           if $opts->{debug};
+    }
 
     my $ab =
       eval { Text::vCard::Addressbook->new( { 'source_text' => $filtered } ); };
@@ -181,6 +202,11 @@ sub vcardtidy {
     # Fix for multiple categories
     while ( $tidy =~ s/^(CATEGORIES:.*?)\\,/$1,/mg ) { }
 
+    if ( $opts->{debug} ) {
+        print STDERR "vcardtidy:\n";
+        _diff( $data, $tidy );
+    }
+
     if ( $opts->{input} eq '-' ) {
         binmode STDOUT, ':raw:encoding(UTF-8)';
         print $tidy;
@@ -202,15 +228,11 @@ sub vcardtidy {
     1;
 }
 
-package App::vcardtidy;
-
-sub run_filters {
-    local $_ = shift;
-    foreach my $filter (@_) {
-        eval $filter;
-        die qq{filter "$filter" failed:\n$@} if $@;
-    }
-    $_;
+sub _diff {
+    my ( $t1, $t2 ) = @_;
+    require Text::Diff;
+    print STDERR ( Text::Diff::diff( \$t1, \$t2 ) || "(No change)\n" ) =~
+      s/^/    /gmr;
 }
 
 __END__
@@ -243,22 +265,22 @@ secure backups.
 
 =over
 
-=item --filter, -F PERL
+=item --debug, -d
 
-Before tidying, evaluate the C<PERL> string with C<$_> set to the input
-text. The modified C<$_> value then input to
-L<Text::vCard::Addressbook> for tidying.
+Output debugging statements to STDERR.
 
-To add an additional category for example:
+=item --regex, -r REGEX
+
+Before tidying, evaluate C<REGEX> replacement expression against the
+input.  Can be used multiple times. To add a NOTE and an additional
+CATEGORY in one go for example:
 
     $ vcardtidy untidy.vcf \
-       -F 's/^END:VCARD/CATEGORIES:\nEND:VCARD/m
-             unless m/^CATEGORIES:/m' \
-       -F 's/^(CATEGORIES:\S+)(\s+)$/\1,\2/m' \
-       -F 's/^(CATEGORIES:.*)(\s+)$/\1NewCat\2/m'
+       -r 's/^END:VCARD/NOTE:My note\r\nEND:VCARD/m'
+       -r 's/^(CATEGORIES:.*)(\s+)$/\1,NewCategory\2/m'
 
 Tools like sed(1), awk(1) and of course perl(1) are obviously natively
-designed to modify text, in a better way. But C<--filter> ensures that
+designed to modify text, in a better way. But C<--regex> ensures that
 you still have a valid VCARD afterwards, allowing you to easily iterate
 while you develop your change.
 
