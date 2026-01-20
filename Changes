@@ -1,4 +1,4 @@
-v0.0.0 (yyyy-mm-dd)
+v1.1.0 (2026-01-20) TRIAL RELEASE
 
     API / Behaviour Changes:
         - Rename --filter option to --regex.
