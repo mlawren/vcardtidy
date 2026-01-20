@@ -14,9 +14,9 @@ DESCRIPTION
     By default vcardtidy acts like a filter, reading from "stdin" and
     writing to "stdout".
 
-    Any "FILES..." specified are tidied up in place without backup!
-    Users are encouraged to use a revision control system (e.g. Git) or
-    have secure backups.
+    If "FILES..." are specified they are tidied up in place! Users are
+    encouraged to use a revision control system (e.g. Git) and/or have
+    secure backups.
 
 OPTIONS
     --filter, -F PERL
@@ -24,39 +24,39 @@ OPTIONS
         input text. The modified $_ value then input to
         Text::vCard::Addressbook for tidying.
 
+        To add an additional category for example:
+
+            $ vcardtidy untidy.vcf \
+               -F 's/^END:VCARD/CATEGORIES:\nEND:VCARD/m
+                     unless m/^CATEGORIES:/m' \
+               -F 's/^(CATEGORIES:\S+)(\s+)$/\1,\2/m' \
+               -F 's/^(CATEGORIES:.*)(\s+)$/\1NewCat\2/m'
+
         Tools like sed(1), awk(1) and of course perl(1) are obviously
         natively designed to modify text, in a better way. But
         "--filter" ensures that you still have a valid VCARD afterwards,
         allowing you to easily iterate while you develop your change.
 
-        To add an additional or missing category for example:
-
-            $ vcardtidy \
-               -f '$_ .= "\nCATEGORIES:\n" unless m/^CATEGORIES:/m' \
-               -f 's/^(CATEGORIES:\S+)(\s+)$/$1,$2/m' \
-               -f 's/^(CATEGORIES:.*)(\s+)$/${1}NewCat$2/m'
-
-        If the result cannot be parsed by Text::vCard then no files are
-        modified or output generated.
-
     --force, -f
-        Force a tidy to occur by adding missing N and FN fields based on
-        the UID.
+        Force a tidy to occur when the N or FN fields are missing, by
+        creating them based on the card's UID.
 
-        This can also be used to overwrite the VERSION field.
+        This flag can also be used to overwrite the VERSION field or
+        ensure the the REV field is updated.
 
     --help, -h
         Print the full usage message and exit.
 
     --no-rev, -R
-        By default vcardtidy sets a new "REV" timestamp. Use this flag
-        to prevent that.
+        Prevent vcardtidy from updating the "REV" timestamp.
 
     --nothing, -n
-        Do not write
+        Do not write tidied output to files. In filter mode outputs the
+        original VCARD.
 
     --vcard-version, -v VERSION
-        The desired vCard VERSION when none exists. Defaults to "4.0".
+        The value of VERSION to update (with "--force") or add (when
+        none exists). Defaults to "4.0".
 
     --version, -V
         Print the version and exit.
