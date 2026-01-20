@@ -1,14 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use 5.006;
+use 5.028;
 use ExtUtils::MakeMaker::CPANfile;
 
 WriteMakefile(
     NAME       => 'App::vcardtidy',
     ABSTRACT   => 'tidy up VCARD files',
     AUTHOR     => 'Mark Lawrence <nomad@null.net>',
-    VERSION    => 'v1.0.5',
+    VERSION    => 'v1.1.0',
     LICENSE    => 'gpl_3',
     EXE_FILES  => ['bin/vcardtidy'],
     test       => { RECURSIVE_TEST_FILES => 1, },

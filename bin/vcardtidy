@@ -6,7 +6,7 @@ use Path::Tiny;
 use Text::vCard::Addressbook;
 use Time::Piece;
 
-our $VERSION = 'v1.0.5';
+our $VERSION = 'v1.1.0';
 
 my $opts = optargs(
     comment => 'tidy (normalize) VCARD contact files',
@@ -19,27 +19,32 @@ my $opts = optargs(
             greedy  => 1,
             comment => 'file to tidy (default is stdin)',
         },
-        nothing => {
+        debug => {
             isa     => '--Flag',
-            alias   => 'n',
-            comment => q{don't modify files, only report errors},
+            alias   => 'd',
+            comment => 'output debugging information to STDERR',
+        },
+        regex => {
+            isa      => '--ArrayRef',
+            isa_name => 'REGEX',
+            alias    => 'r',
+            comment  => 'Regular expression to run against $_ first',
+            default  => sub { [] },
         },
         force => {
             isa     => '--Flag',
             alias   => 'f',
             comment => 'insert missing fields where required',
         },
-        filter => {
-            isa      => '--ArrayRef',
-            isa_name => 'PERL',
-            alias    => 'F',
-            comment  => 'Perl filter(s) to run against $_ first',
-            default  => sub { [] },
-        },
         no_rev => {
             isa     => '--Flag',
             alias   => 'R',
             comment => 'do not update REV value'
+        },
+        nothing => {
+            isa     => '--Flag',
+            alias   => 'n',
+            comment => q{don't modify files, only report errors},
         },
         vcard_version => {
             isa     => '--Str',
@@ -87,7 +92,24 @@ sub vcardtidy {
         $data = $file->slurp( { binmode => ':raw:encoding(UTF-8)' } );
     }
 
-    my $filtered = App::vcardtidy::run_filters( $data, @{ $opts->{filter} } );
+    my $filtered = $data;
+    foreach my $user_re ( @{ $opts->{regex} } ) {
+        use experimental 're_strict';
+        use re 'strict';
+
+        print STDERR "Regex: $user_re\n" if $opts->{debug};
+        my $old = $filtered;
+        eval {
+            local $SIG{ALRM} = sub { die "Timeout\n" };
+            alarm 1;
+            eval "\$filtered =~ $user_re";
+            die $@ if $@;
+            alarm 0;
+        };
+
+        die "Regex failed: $user_re:" . $@ if $@;
+        _diff( $old, $filtered )           if $opts->{debug};
+    }
 
     my $ab =
       eval { Text::vCard::Addressbook->new( { 'source_text' => $filtered } ); };
@@ -180,6 +202,11 @@ sub vcardtidy {
     # Fix for multiple categories
     while ( $tidy =~ s/^(CATEGORIES:.*?)\\,/$1,/mg ) { }
 
+    if ( $opts->{debug} ) {
+        print STDERR "vcardtidy:\n";
+        _diff( $data, $tidy );
+    }
+
     if ( $opts->{input} eq '-' ) {
         binmode STDOUT, ':raw:encoding(UTF-8)';
         print $tidy;
@@ -201,15 +228,11 @@ sub vcardtidy {
     1;
 }
 
-package App::vcardtidy;
-
-sub run_filters {
-    local $_ = shift;
-    foreach my $filter (@_) {
-        eval $filter;
-        die qq{filter "$filter" failed:\n$@} if $@;
-    }
-    $_;
+sub _diff {
+    my ( $t1, $t2 ) = @_;
+    require Text::Diff;
+    print STDERR ( Text::Diff::diff( \$t1, \$t2 ) || "(No change)\n" ) =~
+      s/^/    /gmr;
 }
 
 __END__
@@ -220,7 +243,7 @@ vcardtidy - normalize the format of VCARD files
 
 =head1 VERSION
 
-v1.0.5 (2026-01-15)
+v1.1.0 (2026-01-20)
 
 =head1 SYNOPSIS
 
@@ -234,41 +257,40 @@ normalize field order and capitalization.
 By default B<vcardtidy> acts like a filter, reading from C<stdin> and
 writing to C<stdout>.
 
-Any C<FILES...> specified are tidied up in place B<without backup>!
-Users are encouraged to use a revision control system (e.g. Git) or
-have secure backups.
+If C<FILES...> are specified they are tidied up B<in place>!  Users are
+encouraged to use a revision control system (e.g. Git) and/or have
+secure backups.
 
 =head1 OPTIONS
 
 =over
 
-=item --filter, -F PERL
+=item --debug, -d
 
-Before tidying, evaluate the C<PERL> string with C<$_> set to the input
-text. The modified C<$_> value then input to
-L<Text::vCard::Addressbook> for tidying.
+Output debugging statements to STDERR.
+
+=item --regex, -r REGEX
+
+Before tidying, evaluate C<REGEX> replacement expression against the
+input.  Can be used multiple times. To add a NOTE and an additional
+CATEGORY in one go for example:
+
+    $ vcardtidy untidy.vcf \
+       -r 's/^END:VCARD/NOTE:My note\r\nEND:VCARD/m'
+       -r 's/^(CATEGORIES:.*)(\s+)$/\1,NewCategory\2/m'
 
 Tools like sed(1), awk(1) and of course perl(1) are obviously natively
-designed to modify text, in a better way. But C<--filter> ensures that
+designed to modify text, in a better way. But C<--regex> ensures that
 you still have a valid VCARD afterwards, allowing you to easily iterate
 while you develop your change.
 
-To add an additional or missing category for example:
-
-    $ vcardtidy \
-       -f '$_ .= "\nCATEGORIES:\n" unless m/^CATEGORIES:/m' \
-       -f 's/^(CATEGORIES:\S+)(\s+)$/$1,$2/m' \
-       -f 's/^(CATEGORIES:.*)(\s+)$/${1}NewCat$2/m'
-
-If the result cannot be parsed by L<Text::vCard> then no files are
-modified or output generated.
-
 =item --force, -f
 
-Force a tidy to occur by adding missing N and FN fields based on the
-UID.
+Force a tidy to occur when the N or FN fields are missing, by creating
+them based on the card's UID.
 
-This can also be used to overwrite the VERSION field.
+This flag can also be used to overwrite the VERSION field or ensure the
+the REV field is updated.
 
 =item --help, -h
 
@@ -276,16 +298,17 @@ Print the full usage message and exit.
 
 =item --no-rev, -R
 
-By default B<vcardtidy> sets a new "REV" timestamp. Use this flag to
-prevent that.
+Prevent B<vcardtidy> from updating the "REV" timestamp.
 
 =item --nothing, -n
 
-Do not write
+Do not write tidied output to files. In filter mode outputs the
+original VCARD.
 
 =item --vcard-version, -v VERSION
 
-The desired vCard VERSION when none exists. Defaults to "4.0".
+The value of VERSION to update (with C<--force>) or add (when none
+exists). Defaults to "4.0".
 
 =item --version, -V
 
