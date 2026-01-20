@@ -7,7 +7,7 @@ use ExtUtils::MakeMaker::CPANfile;
 WriteMakefile(
     NAME       => 'App::vcardtidy',
     ABSTRACT   => 'tidy up VCARD files',
-    AUTHOR     => 'Mark Lawrence <nomad@null.net>',
+    AUTHOR     => 'Mark Lawrence <mark@rekudos.net>',
     VERSION    => 'v0.0.0',
     LICENSE    => 'gpl_3',
     EXE_FILES  => ['bin/vcardtidy'],
