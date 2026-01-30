@@ -135,7 +135,7 @@ sub vcardtidy {
                 join '',
                   map { $c[ rand($len_c) ] }
                   @$_
-            } [ 1 .. 8 ], [ 1 .. 4 ], [ 1 .. 4 ], [ 1 .. 4 ], [ 1 .. 12 ];
+            }[ 1 .. 8 ], [ 1 .. 4 ], [ 1 .. 4 ], [ 1 .. 4 ], [ 1 .. 12 ];
 
             $vcard->add_node( { 'node_type' => 'UID', } )->value($uid);
             warn qq/$opts->{input}: VCARD $i missing UID (set to "$uid")\n/;
