@@ -15,6 +15,7 @@ v0.0.0 (yyyy-mm-dd)
 
     Packaging/Dependencies:
         - Update copyright email and year.
+        - Add missing MANIFEST.SKIP
 
 v1.1.0 (2026-01-20) TRIAL RELEASE
 
