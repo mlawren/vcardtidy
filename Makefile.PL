@@ -64,7 +64,7 @@ BEGIN {
     \$ENV{SHARE_DIR} //= "$share";
 }
 use lib "$lib";
-my \$ret = do "$script";
+my \$ret = do "$script" // die "do: $!";
 die \$@ if \$@;
 \$ret;
 EOF
