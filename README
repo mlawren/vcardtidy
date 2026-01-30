@@ -23,11 +23,18 @@ OPTIONS
         Output debugging statements to STDERR.
 
     --force, -f
-        Force a tidy to occur when the N or FN fields are missing, by
-        creating them based on the card's UID.
+        By default a tidy only occurs when the input is valid and when
+        the the content changes reasonably (i.e. ignoring the REV and
+        PRODID fields). This flag forces a tidy to occur which can be
+        used for the following:
 
-        This flag can also be used to overwrite the VERSION field or
-        ensure the the REV field is updated.
+        *   Add missing N or FN fields, based on the card's UID. Handy
+            for fixing VCARDs exported from gmail that contain only
+            email addresses.
+
+        *   Overwrite the VERSION field
+
+        *   Ensure the the REV field is updated.
 
     --help, -h
         Print the full usage message and exit.

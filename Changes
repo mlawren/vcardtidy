@@ -11,6 +11,7 @@ v0.0.0 (yyyy-mm-dd)
 
     Improvements:
         - Put the options in the right order.
+        - Update tidy/no-tidy decision logic and description.
 
     Packaging/Dependencies:
         - Update copyright email and year.

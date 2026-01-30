@@ -207,22 +207,21 @@ sub vcardtidy {
         _diff( $data, $tidy );
     }
 
+    # Ignore changes that only appar in REV and PRODID fields
+    my $data2 = $data;
+    my $tidy2 = $tidy;
+    foreach ( $data2, $tidy2 ) {
+        s/^(REV:).*(\015\012)/$1$2/m;
+        s/^(PRODID:).*(\015\012)/$1$2/m;
+    }
+    my $rewrite = $opts->{force} || ( $data2 ne $tidy2 );
+
     if ( $opts->{input} eq '-' ) {
         binmode STDOUT, ':raw:encoding(UTF-8)';
-        print $tidy;
+        $rewrite ? print($tidy) : print($data);
     }
-    else {
-        my $data2 = $data;
-        $data2 =~ s/^REV:.*\015\012//m;
-        $data2 =~ s/^PRODID:.*\015\012//m;
-
-        my $tidy2 = $tidy;
-        $tidy2 =~ s/^REV:.*\015\012//m;
-        $tidy2 =~ s/^PRODID:.*\015\012//m;
-
-        $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy )
-          unless $opts->{nothing}
-          or ( $data2 eq $tidy2 and not $opts->{force} );
+    elsif ( $rewrite and not $opts->{nothing} ) {
+        $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy );
     }
 
     1;
@@ -271,11 +270,20 @@ Output debugging statements to STDERR.
 
 =item --force, -f
 
-Force a tidy to occur when the N or FN fields are missing, by creating
-them based on the card's UID.
+By default a tidy only occurs when the input is valid and when the the
+content changes reasonably (i.e. ignoring the REV and PRODID fields).
+This flag forces a tidy to occur which can be used for the following:
 
-This flag can also be used to overwrite the VERSION field or ensure the
-the REV field is updated.
+=over
+
+=item * Add missing N or FN fields, based on the card's UID. Handy for
+fixing VCARDs exported from gmail that contain only email addresses.
+
+=item * Overwrite the VERSION field
+
+=item * Ensure the the REV field is updated.
+
+=back
 
 =item --help, -h
 
