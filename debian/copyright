@@ -1,0 +1,26 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: https://metacpan.org/release/App-vcardtidy
+Upstream-Contact: Mark Lawrence <mark@rekudos.net>
+Upstream-Name: App-vcardtidy
+
+Files: *
+Copyright: 2022-2026, Mark Lawrence <mark@rekudos.net>
+License: GPL-3+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or (at
+ your option) any later version.
+ .
+ On Debian systems, the complete text of version 1 of the GNU General
+ Public License can be found in `/usr/share/common-licenses/GPL-3'.
+
+Files: debian/*
+Copyright: 2026, Mark Lawrence <mark@rekudos.net>
+License: GPL-3+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or (at
+ your option) any later version.
+ .
+ On Debian systems, the complete text of version 1 of the GNU General
+ Public License can be found in `/usr/share/common-licenses/GPL-3'.

@@ -1,0 +1,32 @@
+Source: vcardtidy
+Maintainer: Mark Lawrence <mark@rekudos.net>
+Section: perl
+Priority: optional
+Build-Depends: debhelper-compat (= 13)
+Build-Depends-Indep: libextutils-makemaker-cpanfile-perl,
+                     liboptargs2-perl (>= 2.0.0) <!nocheck>,
+                     libpath-tiny-perl <!nocheck>,
+                     libtest-simple-perl | libtest2-suite-perl,
+                     libtext-vcard-perl <!nocheck>,
+                     perl
+Standards-Version: 4.7.2
+Homepage: https://metacpan.org/release/App-vcardtidy
+Rules-Requires-Root: no
+
+Package: vcardtidy
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         liboptargs2-perl (>= 2.0.0),
+         libpath-tiny-perl,
+         libtext-vcard-perl
+Description: Normalize the format of VCARD files
+  vcardtidy formats VCARD files, using Text::vCard::Addressbook to
+  normalize field order and capitalization.
+  .
+  By default vcardtidy acts like a filter, reading from stdin and
+  writing to stdout.
+  .
+  If FILES are specified they are tidied up in place!  Users are
+  encouraged to use a revision control system (e.g. Git) and/or have
+  secure backups.

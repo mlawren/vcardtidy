@@ -13,3 +13,8 @@ blib/
 App-vcardtidy*
 t/vcardtidy
 tmp/
+
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/vcardtidy*

@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+%:
+	env -u PERL5LIB \
+		-u PERL_MB_OPT \
+		-u PERL_MM_OPT \
+		-u PERL_CPANM_OPT \
+		-u PERL_LOCAL_LIB_ROOT \
+		dh $@
