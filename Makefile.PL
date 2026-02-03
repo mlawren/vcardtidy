@@ -64,8 +64,10 @@ BEGIN {
     \$ENV{SHARE_DIR} //= "$share";
 }
 use lib "$lib";
-my \$ret = do "$script" // die "do: $!";
+my \$ret = do "$script";
+die "\$0: \$!" if \$! and not defined \$ret;
 die \$@ if \$@;
+
 \$ret;
 EOF
         $t_script->chmod('a+x');
