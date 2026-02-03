@@ -46,6 +46,23 @@ OPTIONS
         Do not write tidied output to files. In filter mode outputs the
         original VCARD.
 
+    --overwrite FILE
+        When tidying "stdin" and writing to "stdout", additionally
+        overwrite "FILE" as if it was provided as a "FILES" argument.
+
+        This option can be useful when vcardtidy is used as a Git(1)
+        filter, where .gitattributes contains the line "*.vcf
+        filter=vcard", and .git/config includes the following:
+
+            [filter "vcard"]
+                clean = vcardtidy --overwrite %f
+                smudge = cat
+                required
+
+        The "--overwrite" flag ensures that the working tree matches
+        what gets checked in. Without it, commits are always clean, but
+        the file on disk remains untidied.
+
     --regex, -r REGEX
         Before tidying, evaluate a Perl "s/old/new/" replacement
         expression against the input. Can be used multiple times. To add

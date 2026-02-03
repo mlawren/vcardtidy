@@ -7,7 +7,7 @@ v0.0.0 (yyyy-mm-dd)
         - None.
 
     New Features:
-        - None.
+        - New --overwrite option for use as a Git filter.
 
     Improvements:
         - Put the options in the right order.
