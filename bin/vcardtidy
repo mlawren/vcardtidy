@@ -197,7 +197,9 @@ sub vcardtidy {
         }
 
         $vcard->REV($dtstamp) unless $opts->{no_rev};
-        $vcard->PRODID("vcardtidy $VERSION");
+
+        my $prodid_old = $vcard->PRODID // 'vcardtidy';
+        $vcard->PRODID("vcardtidy $VERSION") if $prodid_old =~ m/^vcardtidy/;
 
         $i++;
     }

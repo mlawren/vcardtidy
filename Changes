@@ -1,7 +1,7 @@
 v0.0.0 (yyyy-mm-dd)
 
     API / Behaviour Changes:
-        - None.
+        - Do not overwrite PRODID fields from another provider.
 
     Bug Fixes:
         - None.
