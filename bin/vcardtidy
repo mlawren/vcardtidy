@@ -77,7 +77,8 @@ if ( $opts->{overwrite}
     die "$0: --overwrite conflicts with FILES\n";
 }
 
-my $dtstamp = localtime->strftime('%Y-%m-%dT%H%M%SZ');
+my $have_npl = eval { require Number::Phone::Lib; 1 };
+my $dtstamp  = localtime->strftime('%Y-%m-%dT%H%M%SZ');
 
 my $badcount = 0;
 foreach my $f ( @{ $opts->{files} } ) {
@@ -174,6 +175,23 @@ sub vcardtidy {
                 warn qq/$opts->{input}: VCARD $i missing N field!\n/;
                 return 0;
             }
+        }
+
+        my $warner =
+          sub { warn "$0: $opts->{input}: non-standard TEL: $_[0]\n" };
+        if ( my $numbers = $vcard->get('tel') ) {
+            if ($have_npl) {
+                foreach my $entry (@$numbers) {
+                    my $v   = $entry->value();
+                    my $num = Number::Phone::Lib->new($v);
+                    $num           || $warner->($v) && next;
+                    $num->is_valid || warner->($v)  && next;
+                    my $norm = $num->format_using('NationallyPreferredIntl');
+                    $norm = $num->format() if $norm =~ m/NA/;
+                    $entry->value($norm);
+                }
+            }
+            @$numbers = sort { $a->as_string cmp $b->as_string } @$numbers;
         }
 
         my $v = $vcard->version;
@@ -284,7 +302,10 @@ v0.0.0 (yyyy-mm-dd)
 =head1 DESCRIPTION
 
 B<vcardtidy> formats VCARD files, using L<Text::vCard::Addressbook> to
-normalize field order and capitalization.
+normalize field order and capitalization. If L<Number::Phone> is
+installed then phone numbers are formatted using the
+L<NationallyPreferredIntl|Number::Phone::Formatter::NationallyPreferredIntl>
+format.
 
 By default B<vcardtidy> acts like a filter, reading from C<stdin> and
 writing to C<stdout>.

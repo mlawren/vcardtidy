@@ -20,6 +20,7 @@ Depends: ${misc:Depends},
          liboptargs2-perl (>= 2.0.0),
          libpath-tiny-perl,
          libtext-vcard-perl
+Recommends: libnumber-phone-perl
 Description: Normalize the format of VCARD files
   vcardtidy formats VCARD files, using Text::vCard::Addressbook to
   normalize field order and capitalization.
