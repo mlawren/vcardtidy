@@ -11,6 +11,7 @@ on runtime => sub {
     requires 'Path::Tiny'               => 0;
     requires 'Text::Diff'               => 0;
     requires 'Text::vCard::Addressbook' => 0;
+    recommends 'Number::Phone::Lib' => 0;
 };
 
 on develop => sub {

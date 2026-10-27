@@ -9,7 +9,9 @@ SYNOPSIS
 
 DESCRIPTION
     vcardtidy formats VCARD files, using Text::vCard::Addressbook to
-    normalize field order and capitalization.
+    normalize field order and capitalization. If Number::Phone is
+    installed then phone numbers are formatted using the
+    NationallyPreferredIntl format.
 
     By default vcardtidy acts like a filter, reading from "stdin" and
     writing to "stdout".

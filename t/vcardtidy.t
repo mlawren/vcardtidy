@@ -5,11 +5,14 @@ use Test2::V0;
 use Path::Tiny;
 
 our $VERSION = 'v0.0.0';
+my $have_npl = eval { require Number::Phone::Lib; 1 };
+note "Have Number::Phone" if $have_npl;
 
 my $vcardtidy = path( 't', 'vcardtidy' );
 my $dirty     = path( 't', 'dirty.vcf' );
 my $tmp       = Path::Tiny->tempfile;
-my $want      = path( 't', 'clean.vcf' );
+my $want =
+  $have_npl ? path( 't', 'clean-phone.vcf' ) : path( 't', 'clean.vcf' );
 
 $dirty->copy($tmp);
 
