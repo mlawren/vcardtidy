@@ -131,13 +131,13 @@ sub vcardtidy {
         return 0;
     }
 
-    my @vcards = $ab->vcards;
-    if ( 0 == @vcards ) {
+    my $vcards = $ab->vcards;
+    if ( 0 == @$vcards ) {
         warn "$opts->{input}: No cards to tidy!\n";
         return 1;    # not considered an error. TODO If '-' then print?
     }
 
-    foreach my $vcard (@vcards) {
+    foreach my $vcard (@$vcards) {
         my $i = 0;
         my $u = $vcard->get_simple_type('UID') // do {
             my $uid = _new_uid();
@@ -195,6 +195,12 @@ sub vcardtidy {
 
         $i++;
     }
+
+    # Sort cards by FN - in place so the export sees the changed order
+    @$vcards =
+      map  { $_->[0] }
+      sort { $a->[1] cmp $b->[1] || $a->[2] cmp $b->[2] }
+      map  { [ $_, $_->fullname, $_->UID ] } @$vcards;
 
     # Remove duplicate fields
     my $prev = '';

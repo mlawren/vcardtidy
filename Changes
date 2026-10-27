@@ -12,6 +12,7 @@ v0.0.0 (yyyy-mm-dd)
     Improvements:
         - Put the options in the right order.
         - Update tidy/no-tidy decision logic and description.
+        - Sort vcards within the addressbook
 
     Packaging/Dependencies:
         - Update copyright email and year.
