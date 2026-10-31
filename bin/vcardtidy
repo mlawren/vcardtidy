@@ -80,6 +80,8 @@ if ( $opts->{overwrite}
 my $have_npl = eval { require Number::Phone::Lib; 1 };
 my $dtstamp  = localtime->strftime('%Y-%m-%dT%H%M%SZ');
 
+binmode( STDERR, ':encoding(UTF-8)' ) if $opts->{debug};
+
 my $badcount = 0;
 foreach my $f ( @{ $opts->{files} } ) {
     $opts->{input} = $f;
