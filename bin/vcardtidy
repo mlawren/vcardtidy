@@ -39,11 +39,6 @@ my $opts = optargs(
             alias   => 'n',
             comment => q{don't modify files, only report errors},
         },
-        overwrite => {
-            isa      => '--Str',
-            isa_name => 'FILE',
-            comment  => q{filename to overwrite (Git filter mode)},
-        },
         regex => {
             isa      => '--ArrayRef',
             isa_name => 's/OLD/NEW/',
@@ -71,12 +66,6 @@ my $opts = optargs(
     ],
 );
 
-if ( $opts->{overwrite}
-    and not( 1 == @{ $opts->{files} } and '-' eq $opts->{files}->[0] ) )
-{
-    die "$0: --overwrite conflicts with FILES\n";
-}
-
 my $have_npl = eval { require Number::Phone::Lib; 1 };
 my $dtstamp  = localtime->strftime('%Y-%m-%dT%H%M%SZ');
 
@@ -89,7 +78,6 @@ foreach my $f ( @{ $opts->{files} } ) {
 }
 
 die "vcardtidy failure count: $badcount\n" if $badcount;
-1;
 
 sub vcardtidy {
     my $opts = shift;
@@ -244,6 +232,7 @@ sub vcardtidy {
         s/^(REV:).*(\015\012)/$1$2/m;
         s/^(PRODID:).*(\015\012)/$1$2/m;
     }
+
     my $is_diff = $data2 ne $tidy2;
     my $rewrite = ( ( $opts->{force} // $is_diff ) and not $opts->{nothing} );
 
@@ -255,16 +244,7 @@ sub vcardtidy {
 
     if ( $opts->{input} eq '-' ) {
         binmode STDOUT, ':raw:encoding(UTF-8)';
-        if ($rewrite) {
-            print($tidy);
-            if ( $opts->{overwrite} ) {
-                $path = path( $opts->{overwrite} );
-                $path->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy );
-            }
-        }
-        else {
-            print($data);
-        }
+        print( $rewrite ? $tidy : $data );
     }
     elsif ($rewrite) {
         $path->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy );
@@ -356,24 +336,6 @@ Prevent B<vcardtidy> from updating the "REV" timestamp.
 
 Do not write tidied output to files. In filter mode outputs the
 original VCARD.
-
-=item --overwrite FILE
-
-When tidying C<stdin> and writing to C<stdout>, additionally overwrite
-C<FILE> as if it was provided as a C<FILES> argument.
-
-This option can be useful when B<vcardtidy> is used as a Git(1) filter,
-where F<.gitattributes> contains the line C<*.vcf filter=vcard>, and
-F<.git/config> includes the following:
-
-    [filter "vcard"]
-        clean = vcardtidy --overwrite %f
-        smudge = cat
-        required
-
-The C<--overwrite> flag ensures that the working tree matches what gets
-checked in. Without it, commits are always clean, but the file on disk
-remains untidied.
 
 =item --regex, -r REGEX
 
