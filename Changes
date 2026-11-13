@@ -10,7 +10,7 @@ v1.1.2 (yyyy-mm-dd)
         - None.
 
     Improvements:
-        - None.
+        - Sort CATEGORIES
 
     Packaging/Dependencies:
         - Add missing debian/changelog file

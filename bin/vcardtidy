@@ -168,6 +168,9 @@ sub vcardtidy {
             }
         }
 
+        if ( my $cats = $vcard->get('CATEGORIES') ) {
+            $cats->[0]->value( join ',', sort split /,/, $cats->[0]->value() );
+        }
         if ( my $numbers = $vcard->get('tel') ) {
             if ($have_npl) {
                 local $SIG{__WARN__} = sub {
