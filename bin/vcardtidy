@@ -95,16 +95,17 @@ sub vcardtidy {
     my $opts = shift;
 
     my $data;
-    my $file;
+    my $path;
 
     if ( $opts->{input} eq '-' ) {
         local $/;
         binmode STDIN, ':raw:encoding(UTF-8)';
         $data = <STDIN>;
+        $path = path('-');    # for debug below
     }
     else {
-        $file = path( $opts->{input} );
-        $data = $file->slurp( { binmode => ':raw:encoding(UTF-8)' } );
+        $path = path( $opts->{input} );
+        $data = $path->slurp( { binmode => ':raw:encoding(UTF-8)' } );
     }
 
     my $filtered = $data;
@@ -236,11 +237,6 @@ sub vcardtidy {
     # Fix for multiple categories
     while ( $tidy =~ s/^(CATEGORIES:.*?)\\,/$1,/mg ) { }
 
-    if ( $opts->{debug} ) {
-        print STDERR "vcardtidy:\n";
-        _diff( $data, $tidy );
-    }
-
     # Ignore changes that only appar in REV and PRODID fields
     my $data2 = $data;
     my $tidy2 = $tidy;
@@ -248,16 +244,22 @@ sub vcardtidy {
         s/^(REV:).*(\015\012)/$1$2/m;
         s/^(PRODID:).*(\015\012)/$1$2/m;
     }
-    my $rewrite =
-      ( ( $opts->{force} // ( $data2 ne $tidy2 ) ) and not $opts->{nothing} );
+    my $is_diff = $data2 ne $tidy2;
+    my $rewrite = ( ( $opts->{force} // $is_diff ) and not $opts->{nothing} );
+
+    if ( $opts->{debug} ) {
+        print STDERR 'vcardtidy ' . $path->basename . ':';
+        print STDERR $is_diff ? "\n" . _diff( $data, $tidy ) : ' no change';
+        print STDERR "\n";
+    }
 
     if ( $opts->{input} eq '-' ) {
         binmode STDOUT, ':raw:encoding(UTF-8)';
         if ($rewrite) {
             print($tidy);
             if ( $opts->{overwrite} ) {
-                $file = path( $opts->{overwrite} );
-                $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy );
+                $path = path( $opts->{overwrite} );
+                $path->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy );
             }
         }
         else {
@@ -265,7 +267,7 @@ sub vcardtidy {
         }
     }
     elsif ($rewrite) {
-        $file->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy );
+        $path->spew( { binmode => ':raw:encoding(UTF-8)' }, $tidy );
     }
 
     1;
@@ -285,8 +287,7 @@ sub _new_uid {
 sub _diff {
     my ( $t1, $t2 ) = @_;
     require Text::Diff;
-    print STDERR ( Text::Diff::diff( \$t1, \$t2 ) || "(No change)\n" ) =~
-      s/^/    /gmr;
+    Text::Diff::diff( \$t1, \$t2 ) =~ s/^/    /gmr;
 }
 
 __END__
