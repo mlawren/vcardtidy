@@ -2,7 +2,7 @@ NAME
     vcardtidy - normalize the format of VCARD files
 
 VERSION
-    v1.1.1 (2026-11-13)
+    v1.1.2 (yyyy-mm-dd)
 
 SYNOPSIS
         vcardtidy [FILES...] [OPTIONS...]

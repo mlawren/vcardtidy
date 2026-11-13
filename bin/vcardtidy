@@ -6,7 +6,7 @@ use Path::Tiny;
 use Text::vCard::Addressbook;
 use Time::Piece;
 
-our $VERSION = 'v1.1.1';
+our $VERSION = 'v1.1.2';
 
 my $opts = optargs(
     comment => 'tidy (normalize) VCARD contact files',
@@ -278,7 +278,7 @@ vcardtidy - normalize the format of VCARD files
 
 =head1 VERSION
 
-v1.1.1 (2026-11-13)
+v1.1.2 (yyyy-mm-dd)
 
 =head1 SYNOPSIS
 
