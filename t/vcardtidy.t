@@ -4,7 +4,7 @@ use warnings;
 use Test2::V0;
 use Path::Tiny;
 
-our $VERSION = 'v0.0.0';
+our $VERSION = 'v1.1.1';
 my $have_npl = eval { require Number::Phone::Lib; 1 };
 note "Have Number::Phone" if $have_npl;
 

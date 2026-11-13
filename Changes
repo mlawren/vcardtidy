@@ -1,13 +1,7 @@
-v0.0.0 (yyyy-mm-dd)
+v1.1.1 (2026-11-13) TRIAL RELEASE
 
     API / Behaviour Changes:
         - Do not overwrite PRODID fields from another provider.
-
-    Bug Fixes:
-        - None.
-
-    New Features:
-        - None.
 
     Improvements:
         - Put the options in the right order.
